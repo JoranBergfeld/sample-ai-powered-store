@@ -1,0 +1,135 @@
+@page "/agent"
+@using app.Models
+@using app.Services
+@using MudBlazor
+@using System.Text.RegularExpressions
+@inject AIService AIService
+@inject ProductService ProductService
+
+<PageTitle>AI Agent - SampleStore</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-16">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Product Search Assistant</MudText>
+    
+    <MudPaper Elevation="3" Class="pa-4 mb-6">
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Ask our AI assistant to help you find products. You can describe what you're looking for
+            in natural language, and our AI will try to find the most relevant products for you.
+        </MudText>
+        
+        <MudTextField T="string" Label="What are you looking for?" @bind-Value="userQuery"
+                      Variant="Variant.Outlined" Lines="3" Class="mb-4"
+                      Placeholder="e.g. I need a smartphone with good battery life and a great camera" />
+        
+        <div class="d-flex justify-center">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                      Size="Size.Large" StartIcon="@Icons.Material.Filled.Search"
+                      OnClick="SearchProducts" Disabled="@isSearching">
+                @(isSearching ? "Searching..." : "Search Products")
+            </MudButton>
+        </div>
+    </MudPaper>
+    
+    @if (isSearching)
+    {
+        <div class="d-flex justify-center my-6">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </div>
+    }
+    
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Class="my-4">@errorMessage</MudAlert>
+    }
+    
+    @if (searchResults != null && searchResults.Any())
+    {
+        <MudText Typo="Typo.h5" Class="mb-4">Search Results</MudText>
+        
+        <MudGrid>
+            @foreach (var product in searchResults)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="2" Class="h-100">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h5">@product.Name</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">
+                                @(product.Description.Length > 150 ? product.Description.Substring(0, 150) + "..." : product.Description)
+                            </MudText>
+                            <div class="mt-3">
+                                @foreach (var productTag in product.ProductTags.Take(3))
+                                {
+                                    <MudText Color="Color.Primary" Typo="Typo.caption" Class="mr-1 pa-1 rounded mud-border-primary" Style="border: 1px solid">
+                                        @productTag.Tag.Name
+                                    </MudText>
+                                }
+                                @if (product.ProductTags.Count > 3)
+                                {
+                                    <MudText Color="Color.Secondary" Typo="Typo.caption">+@(product.ProductTags.Count - 3) more</MudText>
+                                }
+                            </div>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                                      Href="@($"/products/{product.Id}")">
+                                View Details
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else if (!isSearching && searchResults != null)
+    {
+        <MudAlert Severity="Severity.Info" Class="my-4">
+            No products found matching your search. Try different search terms or check our product catalog.
+        </MudAlert>
+        
+        <div class="d-flex justify-center mt-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/products">
+                Browse All Products
+            </MudButton>
+        </div>
+    }
+</MudContainer>
+
+@code {
+    private string userQuery = "";
+    private List<Product>? searchResults = null;
+    private bool isSearching = false;
+    private string errorMessage = "";
+
+    private async Task SearchProducts()
+    {
+        if (string.IsNullOrWhiteSpace(userQuery))
+        {
+            errorMessage = "Please enter a search query.";
+            return;
+        }
+
+        try
+        {
+            errorMessage = "";
+            isSearching = true;
+            StateHasChanged(); // Update UI to show loading indicator
+            
+            searchResults = await AIService.SearchProductsByNaturalLanguageAsync(userQuery);
+            
+            if (searchResults.Count == 0)
+            {
+                // No error but also no results
+                errorMessage = "No products matched your query. Try different terms or browse all products.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+            searchResults = new List<Product>();
+        }
+        finally
+        {
+            isSearching = false;
+        }
+    }
+}

@@ -1,0 +1,61 @@
+﻿@page "/"
+@using MudBlazor
+
+<PageTitle>Home - SampleStore</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-16">
+    <MudText Typo="Typo.h2" Align="Align.Center" GutterBottom="true">Welcome to SampleStore</MudText>
+    
+    <MudPaper Elevation="3" Class="pa-6 ma-6">
+        <MudText Typo="Typo.body1" Class="mb-4">
+            SampleStore is a product management application that allows you to browse and manage products.
+            Each product in our system has a description and is categorized using tags. 
+            This application is meant to demonstrate that a traditional search through products is not sufficient for complex queries.
+            You can use our advanced search agent to find products based on natural language.
+        </MudText>
+        
+        <MudText Typo="Typo.body1" Class="mb-6">
+            Explore our product catalog to discover solutions for your needs.
+        </MudText>
+        
+        <div class="d-flex justify-center">
+            <MudButton Variant="Variant.Filled" 
+                      Color="Color.Primary" 
+                      Size="Size.Large"
+                      StartIcon="@Icons.Material.Filled.Store"
+                      Href="/products">
+                View Products
+            </MudButton>
+        </div>
+    </MudPaper>
+    
+    <MudGrid Class="mt-8">
+        <MudItem xs="12" sm="4">
+            <MudCard Elevation="2" Class="h-100">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.Search" Color="Color.Primary" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h5">Browse Products</MudText>
+                    <MudText Typo="Typo.body2">Explore our catalog of high-quality products organized by categories.</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudCard Elevation="2" Class="h-100">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.Category" Color="Color.Secondary" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h5">Filter by Category</MudText>
+                    <MudText Typo="Typo.body2">Use tags to find exactly what you're looking for quickly and efficiently.</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudCard Elevation="2" Class="h-100">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Info" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h5">Detailed Information</MudText>
+                    <MudText Typo="Typo.body2">View comprehensive details about each product to make informed decisions.</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>

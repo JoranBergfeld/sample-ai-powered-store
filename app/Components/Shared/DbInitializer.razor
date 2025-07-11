@@ -1,0 +1,12 @@
+@using app.Data
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext DbContext
+@inject NavigationManager NavigationManager
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure the database is created and seeded
+        await DbContext.Database.EnsureCreatedAsync();
+    }
+}

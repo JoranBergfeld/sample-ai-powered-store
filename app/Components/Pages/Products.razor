@@ -1,0 +1,177 @@
+@page "/products"
+@using app.Models
+@using app.Services
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.Components.Web
+@using System.Text.RegularExpressions
+@using MudBlazor
+@inject ProductService ProductService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Products - SampleStore</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h3" Class="mb-4">Products</MudText>
+
+    <MudPaper Elevation="2" Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="searchPattern" Label="Search by Description" 
+                              Variant="Variant.Outlined" Immediate="true"
+                              Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                              OnKeyUp="@SearchProducts" HelperText="Use regex patterns to search product descriptions" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudSelect T="int" Label="Filter by Category" Variant="Variant.Outlined" @bind-Value="selectedTagId" 
+                           HelperText="Select a category to filter products">
+                    <MudSelectItem Value="0">All Categories</MudSelectItem>
+                    @foreach (var tag in tags)
+                    {
+                        <MudSelectItem Value="@tag.Id">@tag.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="2" Class="d-flex align-center">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" 
+                           OnClick="@(() => ResetFilters())">Reset Filters</MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (products == null)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else if (!products.Any())
+    {
+        <MudAlert Severity="Severity.Info" Class="mb-4">No products found.</MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var product in products)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="2" Class="h-100">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h5">@product.Name</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">
+                                @(product.Description.Length > 150 ? product.Description.Substring(0, 150) + "..." : product.Description)
+                            </MudText>
+                            <div class="mt-3">
+                                @foreach (var productTag in product.ProductTags.Take(3))
+                                {
+                                    <MudText Color="Color.Primary" Typo="Typo.caption" Class="mr-1 pa-1 rounded mud-border-primary" Style="border: 1px solid">
+                                        @productTag.Tag.Name
+                                    </MudText>
+                                }
+                                @if (product.ProductTags.Count > 3)
+                                {
+                                    <MudText Color="Color.Secondary" Typo="Typo.caption">+@(product.ProductTags.Count - 3) more</MudText>
+                                }
+                            </div>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                                       Href="@($"/products/{product.Id}")">
+                                View Details
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    private List<Product>? products;
+    private List<Product>? allProducts; // Store all products for filtering
+    private List<Tag> tags = new();
+    private int _selectedTagId = 0; // 0 represents "All Categories"
+    private string searchPattern = ""; // For regex search
+     
+    private int selectedTagId
+    {
+        get => _selectedTagId;
+        set
+        {
+            Console.WriteLine($"Selected Tag ID: {value}");
+            if (_selectedTagId != value)
+            {
+                Console.WriteLine($"Changing selected tag from {_selectedTagId} to {value}");
+                _selectedTagId = value;
+                // Trigger filtering when the tag selection changes
+                InvokeAsync(async () => await ApplyFilters());
+            }
+        }
+    }
+
+    // Handle search with regex pattern
+    private async Task SearchProducts(KeyboardEventArgs args)
+    {
+        await ApplyFilters();
+    }
+
+    // Reset all filters
+    private async Task ResetFilters()
+    {
+        searchPattern = "";
+        _selectedTagId = 0;
+        await LoadProductsAsync();
+    }
+
+    // Apply both tag filter and search filter
+    private async Task ApplyFilters()
+    {
+        await LoadProductsAsync(); // First load products based on tag selection
+
+        // Then apply regex filter if search pattern is provided
+        if (!string.IsNullOrWhiteSpace(searchPattern))
+        {
+            try
+            {
+                var regex = new System.Text.RegularExpressions.Regex(searchPattern, 
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                
+                products = products?.Where(p => regex.IsMatch(p.Description)).ToList();
+            }
+            catch (System.Text.RegularExpressions.RegexParseException)
+            {
+                // If invalid regex, just do a simple contains search
+                products = products?.Where(p => p.Description.Contains(searchPattern, 
+                    StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task LoadTagsAsync()
+    {
+        tags = await ProductService.GetTagsAsync();
+    }
+
+    private async Task LoadProductsAsync()
+    {
+        if (selectedTagId == 0)
+        {
+            // Load all products when "All Categories" is selected
+            Console.WriteLine("Loading all products");
+            products = await ProductService.GetProductsAsync();
+        }
+        else
+        {
+            // Load products filtered by the selected tag
+            Console.WriteLine($"Loading products for tag ID: {selectedTagId}");
+            products = await ProductService.GetProductsByTagAsync(selectedTagId);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTagsAsync();
+        await LoadProductsAsync();
+        StateHasChanged();
+    }
+}

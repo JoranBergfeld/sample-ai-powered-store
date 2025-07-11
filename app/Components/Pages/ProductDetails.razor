@@ -1,0 +1,77 @@
+@page "/products/{Id:int}"
+@using app.Models
+@using app.Services
+@using MudBlazor
+@inject ProductService ProductService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Product Details - SampleStore</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    @if (product == null)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h3">@product.Name</MudText>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" 
+                          Href="/products" StartIcon="@Icons.Material.Filled.ArrowBack">
+                    Back to Products
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Elevation="3" Class="pa-4">
+            <MudText Typo="Typo.h5" Class="mb-4">Product Details</MudText>
+            
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1" Class="mb-2"><strong>ID:</strong> @product.Id</MudText>
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1" Class="mb-2"><strong>Description:</strong></MudText>
+                    <MudText Typo="Typo.body1">@product.Description</MudText>
+                </MudItem>
+                
+                <MudItem xs="12" Class="mt-4">
+                    <MudText Typo="Typo.subtitle1" Class="mb-2"><strong>Categories:</strong></MudText>
+                    <div>
+                        @foreach (var productTag in product.ProductTags)
+                        {
+                            <MudButton Variant="Variant.Filled" 
+                                      Color="Color.Primary" 
+                                      Size="Size.Small"
+                                      Class="ma-1"
+                                      Href="@($"/products?tagId={productTag.TagId}")">
+                                @productTag.Tag.Name
+                            </MudButton>
+                        }
+                    </div>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Product? product;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        product = await ProductService.GetProductAsync(Id);
+        
+        if (product == null)
+        {
+            NavigationManager.NavigateTo("/products");
+        }
+    }
+}
+    }
+}

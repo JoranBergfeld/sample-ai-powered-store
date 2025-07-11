@@ -1,0 +1,26 @@
+﻿@page "/Error"
+@using System.Diagnostics
+@using MudBlazor
+
+<PageTitle>Error</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16">
+    <MudText Typo="Typo.h3" Color="Color.Error" Align="Align.Center">An error has occurred</MudText>
+    <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mb-4">Sorry, something went wrong while processing your request.</MudText>
+    
+    <MudPaper Elevation="3" Class="pa-4 mb-6">
+        <MudText Typo="Typo.h5">Development Mode</MudText>
+        <MudText Typo="Typo.body1" Class="mt-3">
+            Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
+        </MudText>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            <MudText>The Development environment shouldn't be enabled for deployed applications.</MudText>
+        </MudAlert>
+    </MudPaper>
+
+    <div class="d-flex justify-center">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/">
+            Return to Home
+        </MudButton>
+    </div>
+</MudContainer>
