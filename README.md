@@ -2,9 +2,9 @@
 
 This repository holds a sample application that demonstrates how to integrate a chatbot in a .NET application using AI agents. The application showcases a product catalog with search capabilities powered by AI.
 
-## Search Capabilities Comparison: Regex vs. AI Agent
+## Search Capabilities Comparison: Regex vs. AI Agent vs. Visual Search
 
-This application showcases two distinct search approaches:
+This application showcases three distinct search approaches:
 
 ### Regex Search (Products Page)
 
@@ -19,14 +19,26 @@ The regex search on the Products page offers:
 
 ### AI-Powered Search (Agent Page)
 
-In contrast, the AI Agent search provides:
+The AI Agent search provides:
 
 - **Natural Language Understanding**: Interprets what you're looking for even if you don't use exact product terminology
 - **Context Awareness**: Understands the intent behind your query, not just the keywords
 - **Semantic Matching**: Connects related concepts and synonyms that regex can't capture
 - **Multi-Signal Analysis**: Balances the importance of search terms vs. categories based on query analysis
 
-**Use Case Example**: Rather than searching for "mobile AND high-resolution AND portrait", you can simply ask: "I need a smartphone that takes great selfies" and the AI agent will understand and find appropriate products.
+**Use Case Example**: Rather than searching for "Coding", you can simply ask: "Show me all coding products" and the AI agent will understand and find appropriate products. The programming book won't be found using the "coding" word, however when using AI it will be able to find it.
+
+### Visual Search (Image Agent Page)
+
+The new Visual Search feature allows:
+
+- **Image-Based Discovery**: Upload an image to find similar or related products
+- **Object Detection**: Identifies objects, items, and products in the uploaded image
+- **Characteristic Recognition**: Analyzes colors, styles, shapes, and other visual elements
+- **Category Matching**: Suggests product categories based on visual analysis
+- **Multi-Modal AI**: Uses vision-capable AI models to bridge visual content with text-based product data
+
+**Use Case Example**: When you see a product you like (e.g., in a magazine or while browsing), take a photo and upload it to find similar items in our catalog without having to describe it in words.
 
 ### Technical Implementation
 
@@ -60,7 +72,7 @@ The AI search uses Semantic Kernel with Azure OpenAI to:
 This application requires an Azure OpenAI service to power the AI agent. You'll need to:
 
 1. Create an Azure OpenAI resource in the Azure portal
-2. Deploy a model (GPT-4 or GPT-3.5-Turbo recommended) to your Azure OpenAI resource
+2. Deploy a GPT-4 Vision model to your Azure OpenAI resource
 3. Configure the application with your Azure OpenAI credentials in `appsettings.Development.json`:
 
 ```json
@@ -69,11 +81,15 @@ This application requires an Azure OpenAI service to power the AI agent. You'll 
     "Endpoint": "https://your-resource.openai.azure.com",
     "DeploymentName": "your-deployment-name",
     "ApiKey": "your-api-key"
+  },
+  "AzureVision": {
+    "Endpoint": "https://your-resource.cognitiveservices.azure.com/",
+    "ApiKey": "your-api-key"
   }
 }
 ```
 
-> **Note**: Without valid Azure OpenAI credentials, the application will fall back to mock responses for development purposes only.
+> **Note**: Without valid Azure OpenAI or Azure Vision credentials, the application will fall back to mock responses for development purposes only. 
 
 ### Running Locally
 
@@ -91,6 +107,22 @@ This application requires an Azure OpenAI service to power the AI agent. You'll 
 
 3. Open a browser and navigate to `https://localhost:7202` or `http://localhost:5014`
 
+### Using the Visual Search Feature
+
+Once the application is running:
+
+1. Navigate to the "Visual Search" page from the main navigation menu
+2. Click "Upload Image" to select a photo from your device (supported formats: JPG, JPEG, PNG)
+3. After selecting an image, click "Find Matching Products"
+4. The AI will analyze the image and show:
+   - A description of what's in the image
+   - Objects and items detected
+   - Characteristics like colors, styles, etc.
+   - Suggested product categories
+   - Matching products from the catalog
+
+> **Note**: Image processing may take a few seconds depending on the complexity of the image and your connection to Azure Vision.
+
 ### Project Structure
 
 - **app/**: Contains the main application code
@@ -106,19 +138,13 @@ This application requires an Azure OpenAI service to power the AI agent. You'll 
 - **infra/**: Infrastructure as Code using Bicep
   - **main.bicep**: Main deployment module
   - **modules/**: Individual infrastructure components
-    - **containerapp.bicep**: Container App deployment
-    - **openai.bicep**: Azure OpenAI service deployment
+    - **host/**: Container App deployment
+    - **ai/**: Azure AI services deployment
+    - **security/**: Security concerns such as managed identity 
 
 ## Deployment to Azure
 
 This application can be deployed to Azure using the Azure Developer CLI (azd). The infrastructure is provisioned using Bicep templates and deployed to Azure Container Apps.
-
-```powershell
-# Run the deployment script
-./deploy.ps1
-```
-
-Alternatively, you can run the deployment steps manually:
 
 ```powershell
 # Initialize the environment
@@ -131,14 +157,17 @@ azd provision
 azd deploy
 ```
 
+You can simply invoke all these steps by runnning the following command:
+```powershell
+azd up
+```
+
 ### Container Deployment with GitHub Actions
 
 This application supports containerized deployment using GitHub Actions and GitHub Packages. For detailed instructions on:
 - Building and testing containers locally
 - Setting up the GitHub Actions workflow
 - Configuring Azure Container Apps to use GitHub Packages
-
-See [Container Deployment Guide](CONTAINER.md) and [Azure Deployment Guide](AZURE_DEPLOYMENT.md)
 
 ## Features
 
@@ -300,4 +329,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE.md file for details.

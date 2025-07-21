@@ -11,7 +11,7 @@ param tags object
 param skuName string = 'S0'
 
 @description('The deployment model for Azure OpenAI')
-param deploymentModel string = 'gpt-35-turbo'
+param deploymentModel string = 'gpt-4o'
 
 @description('The deployment capacity for Azure OpenAI')
 param deploymentCapacity int = 1
@@ -19,7 +19,7 @@ param deploymentCapacity int = 1
 @description('Deployment name for the model')
 param deploymentName string = 'chat'
 
-resource openAi 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
+resource openAi 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   name: name
   location: location
   tags: tags
@@ -33,7 +33,7 @@ resource openAi 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   }
 }
 
-resource openAiDeployment 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = {
+resource openAiDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
   parent: openAi
   name: deploymentName
   tags: tags
@@ -53,3 +53,5 @@ resource openAiDeployment 'Microsoft.CognitiveServices/accounts/deployments@2023
 output id string = openAi.id
 output name string = openAi.name
 output endpoint string = openAi.properties.endpoint
+output modelName string = deploymentName
+output key1 string = listKeys(openAi.id, '2025-06-01').key1

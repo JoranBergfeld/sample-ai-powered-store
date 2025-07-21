@@ -3,13 +3,19 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "environmentName": {
-      "value": "samplestore"
+      "value": "${AZURE_ENV_NAME}"
     },
     "location": {
-      "value": "swedencentral"
+      "value": "${AZURE_LOCATION}"
     },
-    "containerImage": {
-      "value": "ghcr.io/yourusername/samplestore-search-agent:latest"
+    "openAiServiceLocation": {
+      "value": "${AZURE_OPENAI_SERVICE_LOCATION}"
+    },
+    "webAppExists": {
+      "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}"
+    },
+    "azureContainerAppsWorkloadProfile": {
+      "value": "${AZURE_CONTAINER_APPS_WORKLOAD_PROFILE=Consumption}"
     }
   }
 }

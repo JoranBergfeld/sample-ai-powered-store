@@ -6,6 +6,8 @@ using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Azure.AI.Vision.ImageAnalysis;
+using System.Collections.Generic;
 
 namespace app.Services;
 
@@ -15,17 +17,20 @@ public class AIService
     private readonly ILogger<AIService> _logger;
     private readonly AppDbContext _dbContext;
     private readonly ProductService _productService;
+    private readonly ImageAnalysisClientFactory _visionClientFactory;
 
     public AIService(
         Kernel kernel, 
         ILogger<AIService> logger,
         AppDbContext dbContext,
-        ProductService productService)
+        ProductService productService,
+        ImageAnalysisClientFactory visionClientFactory)
     {
         _kernel = kernel;
         _logger = logger;
         _dbContext = dbContext;
         _productService = productService;
+        _visionClientFactory = visionClientFactory;
         
         // Register the product search tool
         _kernel.Plugins.AddFromObject(new ProductSearchTool(_productService), "ProductSearch");
@@ -115,6 +120,184 @@ public class AIService
         }
     }
 
+    public async Task<ImageAnalysisResult> AnalyzeImageAsync(byte[] imageData)
+    {
+        try
+        {
+            _logger.LogInformation("Processing image analysis request");
+            
+            // Create a vision client
+            var visionClient = _visionClientFactory.CreateClient();
+            
+            // Set up the visual features for analysis
+            var visualFeatures = VisualFeatures.Caption | VisualFeatures.Objects | VisualFeatures.Tags;
+            
+            // Create a BinaryData object from the image bytes
+            var binaryData = new BinaryData(imageData);
+            
+            // Analyze the image
+            var response = await visionClient.AnalyzeAsync(binaryData, visualFeatures);
+            
+            // Get the result from the response
+            var visionResult = response.Value;
+
+            _logger.LogInformation("Azure Vision API analysis completed");
+
+            // Parse results into our ImageAnalysisResult model
+            var result = new ImageAnalysisResult
+            {
+                Description = visionResult.Caption?.Text ?? "No description available",
+                Objects = ExtractObjects(visionResult),
+                Characteristics = ExtractCharacteristics(visionResult),
+                SuggestedCategories = ExtractCategories(visionResult)
+            };
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing image analysis: {Message}", ex.Message);
+            return new ImageAnalysisResult
+            {
+                Description = $"Error analyzing image: {ex.Message}",
+                Objects = Array.Empty<string>(),
+                Characteristics = Array.Empty<string>(),
+                SuggestedCategories = Array.Empty<string>()
+            };
+        }
+    }
+
+    private string[] ExtractObjects(Azure.AI.Vision.ImageAnalysis.ImageAnalysisResult visionResult)
+    {
+        var objects = new List<string>();
+        
+        // Add detected objects if available
+        if (visionResult.Objects != null)
+        {
+            // Extract detected objects
+            foreach (var detectedObject in visionResult.Objects.Values)
+            {
+                // Each detected object may have tags, add the first tag as the object name
+                if (detectedObject.Tags.Any())
+                {
+                    var objectName = detectedObject.Tags.First().Name;
+                    if (!string.IsNullOrEmpty(objectName) && !objects.Contains(objectName))
+                    {
+                        objects.Add(objectName);
+                    }
+                }
+            }
+        }
+        
+        return objects.ToArray();
+    }
+
+    private string[] ExtractCharacteristics(Azure.AI.Vision.ImageAnalysis.ImageAnalysisResult visionResult)
+    {
+        var characteristics = new List<string>();
+        
+        // Add characteristics from tags if available
+        if (visionResult.Tags != null)
+        {
+            // Extract tags that represent characteristics (colors, materials, etc.)
+            foreach (var tag in visionResult.Tags.Values)
+            {
+                // Filter tags to include only those that describe characteristics
+                // and have confidence above 0.7
+                if (tag.Confidence >= 0.7 && IsCharacteristic(tag.Name))
+                {
+                    characteristics.Add(tag.Name);
+                }
+            }
+        }
+        
+        return characteristics.ToArray();
+    }
+
+    private string[] ExtractCategories(Azure.AI.Vision.ImageAnalysis.ImageAnalysisResult visionResult)
+    {
+        var categories = new List<string>();
+        
+        // Add potential categories from tags with higher confidence if available
+        if (visionResult.Tags != null)
+        {
+            // Extract tags that might represent product categories
+            foreach (var tag in visionResult.Tags.Values)
+            {
+                // Use tags with high confidence as potential categories
+                if (tag.Confidence >= 0.8 && IsCategory(tag.Name))
+                {
+                    categories.Add(tag.Name);
+                }
+            }
+        }
+        
+        return categories.ToArray();
+    }
+
+    // Helper method to identify tags that represent characteristics
+    private bool IsCharacteristic(string tagName)
+    {
+        // Common color names
+        string[] colors = { "red", "blue", "green", "yellow", "black", "white", "brown", "orange", "purple", "pink", "gray" };
+        
+        // Common materials
+        string[] materials = { "wood", "metal", "plastic", "glass", "fabric", "leather", "cotton", "wool", "silk", "ceramic" };
+        
+        // Common shapes and styles
+        string[] styles = { "round", "square", "rectangular", "modern", "vintage", "casual", "formal", "elegant", "rustic", "minimalist" };
+
+        // Check if the tag is in any of these categories
+        return colors.Contains(tagName.ToLower()) || 
+               materials.Contains(tagName.ToLower()) || 
+               styles.Contains(tagName.ToLower());
+    }
+
+    // Helper method to identify tags that represent potential product categories
+    private bool IsCategory(string tagName)
+    {
+        // Common product categories
+        string[] categories = { 
+            "furniture", "electronics", "clothing", "appliance", "device", "accessory", "tool", 
+            "kitchenware", "home", "office", "sport", "toy", "book", "game", "computer", "phone", 
+            "camera", "watch", "shoe", "bag", "dress", "shirt", "pant", "jacket", "coat", "food"
+        };
+
+        return categories.Contains(tagName.ToLower());
+    }
+
+    public async Task<List<Product>> FindProductsFromImageAnalysisAsync(ImageAnalysisResult analysisResult)
+    {
+        try
+        {
+            // Convert the image analysis result to search terms and categories
+            var searchTerms = new List<string>();
+            searchTerms.AddRange(analysisResult.Objects);
+            searchTerms.AddRange(analysisResult.Characteristics);
+            
+            var searchTermsString = string.Join(" ", searchTerms.Distinct());
+            var categoriesString = string.Join(" ", analysisResult.SuggestedCategories.Distinct());
+            
+            // Use the search function to find matching products
+            var arguments = new KernelArguments
+            {
+                ["searchTerms"] = searchTermsString,
+                ["categories"] = categoriesString,
+                ["importance"] = "searchTerms" // We prioritize the objects/characteristics detected
+            };
+
+            var searchFunction = _kernel.Plugins["ProductSearch"]["FindProducts"];
+            var matchingProducts = await _kernel.InvokeAsync<List<Product>>(searchFunction, arguments);
+
+            return matchingProducts ?? new List<Product>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error finding products from image analysis");
+            return new List<Product>();
+        }
+    }
+
     private string CleanJsonResponse(string text)
     {
         // If the text is null or empty, return an empty JSON object
@@ -152,6 +335,15 @@ public class ProductSearchCriteria
     public string[] SearchTerms { get; set; } = Array.Empty<string>();
     public string[] Categories { get; set; } = Array.Empty<string>();
     public string Importance { get; set; } = "searchTerms";
+}
+
+// Class to hold image analysis results
+public class ImageAnalysisResult
+{
+    public string Description { get; set; } = "";
+    public string[] Objects { get; set; } = Array.Empty<string>();
+    public string[] Characteristics { get; set; } = Array.Empty<string>();
+    public string[] SuggestedCategories { get; set; } = Array.Empty<string>();
 }
 
 // Tool to search for products that will be used by the kernel

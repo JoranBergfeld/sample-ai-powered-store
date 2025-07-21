@@ -4,11 +4,11 @@ EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
-COPY ["app/app.csproj", "app/"]
-RUN dotnet restore "app/app.csproj"
+WORKDIR /app
+COPY ["app.csproj", "."]
+RUN dotnet restore "app.csproj"
 COPY . .
-WORKDIR "/src/app"
+WORKDIR "/app"
 RUN dotnet build "app.csproj" -c Release -o /app/build
 
 FROM build AS publish

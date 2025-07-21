@@ -1,22 +1,9 @@
 name: samplestore-search-agent
-metadata:
-    template: azd-init@1.17.2
 services:
     app:
         project: app
         host: containerapp
-        language: dotnet
-        port: 80
+        language: csharp
         docker:
-            path: ./Dockerfile
-            context: .
-variables:
-  - name: location
-    type: string
-    default: swedencentral
-    description: The Azure region to deploy resources in.
-  - name: containerImage
-    type: string
-    default: ghcr.io/yourusername/samplestore-search-agent:latest
-    description: The container image to use for deployment.
-
+            dockerfile: Dockerfile    
+            remoteBuild: true        
