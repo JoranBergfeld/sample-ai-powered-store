@@ -59,75 +59,75 @@ public class AppDbContext : DbContext
         products.Add(new Product { Id = 2, Name = "T-Shirt", Description = "Cotton t-shirt, available in multiple colors" });
         products.Add(new Product { Id = 3, Name = "Programming Book", Description = "Learn C# programming with practical examples" });
 
-        // Electronics (Tag 1)
+        // Electronics (Tag 1) - International products
         products.Add(new Product { Id = 4, Name = "Smartphone", Description = "Latest smartphone with 6.7-inch display and 5G connectivity" });
-        products.Add(new Product { Id = 5, Name = "Tablet", Description = "10-inch tablet with high-resolution display and long battery life" });
-        products.Add(new Product { Id = 6, Name = "Wireless Earbuds", Description = "Bluetooth earbuds with noise cancellation and 24-hour battery life" });
-        products.Add(new Product { Id = 7, Name = "Smart Watch", Description = "Fitness tracking watch with heart rate monitor and GPS" });
-        products.Add(new Product { Id = 8, Name = "Gaming Console", Description = "Next-gen gaming console with 4K gaming capabilities" });
-        products.Add(new Product { Id = 9, Name = "Bluetooth Speaker", Description = "Portable speaker with 360-degree sound and waterproof design" });
-        products.Add(new Product { Id = 10, Name = "Digital Camera", Description = "DSLR camera with 24MP sensor and 4K video recording" });
-        products.Add(new Product { Id = 11, Name = "Monitor", Description = "27-inch 4K monitor with HDR support" });
-        products.Add(new Product { Id = 12, Name = "Wireless Mouse", Description = "Ergonomic wireless mouse with customizable buttons" });
-        products.Add(new Product { Id = 13, Name = "Mechanical Keyboard", Description = "RGB mechanical keyboard with customizable switches" });
+        products.Add(new Product { Id = 5, Name = "Tablette", Description = "Tablette 10 pouces avec écran haute résolution et autonomie longue durée" });
+        products.Add(new Product { Id = 6, Name = "Auriculares Inalámbricos", Description = "Auriculares Bluetooth con cancelación de ruido y 24 horas de batería" });
+        products.Add(new Product { Id = 7, Name = "Smartwatch", Description = "Fitness tracking horloge met hartslagmeter en GPS" });
+        products.Add(new Product { Id = 8, Name = "Console de Jeu", Description = "Console de jeu nouvelle génération avec capacités gaming 4K" });
+        products.Add(new Product { Id = 9, Name = "Altavoz Bluetooth", Description = "Altavoz portátil con sonido 360 grados y diseño resistente al agua" });
+        products.Add(new Product { Id = 10, Name = "Digitale Camera", Description = "DSLR camera met 24MP sensor en 4K video opname" });
+        products.Add(new Product { Id = 11, Name = "Moniteur", Description = "Moniteur 4K 27 pouces avec support HDR" });
+        products.Add(new Product { Id = 12, Name = "Ratón Inalámbrico", Description = "Ratón inalámbrico ergonómico con botones personalizables" });
+        products.Add(new Product { Id = 13, Name = "Mechanisch Toetsenbord", Description = "RGB mechanisch toetsenbord met aanpasbare schakelaars" });
 
-        // Clothing (Tag 2)
-        products.Add(new Product { Id = 14, Name = "Jeans", Description = "Classic denim jeans available in various fits and washes" });
-        products.Add(new Product { Id = 15, Name = "Sweater", Description = "Warm knit sweater perfect for colder weather" });
-        products.Add(new Product { Id = 16, Name = "Jacket", Description = "Waterproof jacket with breathable fabric" });
-        products.Add(new Product { Id = 17, Name = "Dress", Description = "Elegant dress suitable for formal occasions" });
-        products.Add(new Product { Id = 18, Name = "Shorts", Description = "Comfortable shorts for warm weather activities" });
-        products.Add(new Product { Id = 19, Name = "Socks", Description = "Pack of 6 cotton socks in assorted colors" });
-        products.Add(new Product { Id = 20, Name = "Hoodie", Description = "Casual pullover hoodie with front pocket" });
-        products.Add(new Product { Id = 21, Name = "Swimwear", Description = "Quick-dry swimwear for beach and pool activities" });
-        products.Add(new Product { Id = 22, Name = "Scarf", Description = "Soft woven scarf for added warmth and style" });
-        products.Add(new Product { Id = 23, Name = "Gloves", Description = "Touchscreen compatible gloves for winter use" });
+        // Clothing (Tag 2) - International products
+        products.Add(new Product { Id = 14, Name = "Vaqueros", Description = "Vaqueros clásicos de mezclilla disponibles en varios cortes y lavados" });
+        products.Add(new Product { Id = 15, Name = "Pull-over", Description = "Pull-over en maille chaude parfait pour les temps froids" });
+        products.Add(new Product { Id = 16, Name = "Waterproof Jas", Description = "Waterdichte jas met ademende stof" });
+        products.Add(new Product { Id = 17, Name = "Vestido", Description = "Vestido elegante adecuado para ocasiones formales" });
+        products.Add(new Product { Id = 18, Name = "Short", Description = "Short confortable pour les activités par temps chaud" });
+        products.Add(new Product { Id = 19, Name = "Sokken", Description = "Pak van 6 katoenen sokken in verschillende kleuren" });
+        products.Add(new Product { Id = 20, Name = "Sudadera con Capucha", Description = "Sudadera casual con bolsillo frontal" });
+        products.Add(new Product { Id = 21, Name = "Maillot de Bain", Description = "Maillot de bain à séchage rapide pour la plage et la piscine" });
+        products.Add(new Product { Id = 22, Name = "Sjaal", Description = "Zachte geweven sjaal voor extra warmte en stijl" });
+        products.Add(new Product { Id = 23, Name = "Guantes", Description = "Guantes compatibles con pantalla táctil para uso en invierno" });
 
-        // Books (Tag 3)
-        products.Add(new Product { Id = 24, Name = "Mystery Novel", Description = "Bestselling mystery novel from acclaimed author" });
-        products.Add(new Product { Id = 25, Name = "Science Fiction", Description = "Award-winning sci-fi book set in a distant future" });
-        products.Add(new Product { Id = 26, Name = "Biography", Description = "Inspiring biography of a historical figure" });
-        products.Add(new Product { Id = 27, Name = "Cookbook", Description = "Collection of easy and delicious recipes for beginners" });
-        products.Add(new Product { Id = 28, Name = "Self-Help Book", Description = "Guide to personal growth and development" });
-        products.Add(new Product { Id = 29, Name = "Business Book", Description = "Strategies for success in the modern business world" });
-        products.Add(new Product { Id = 30, Name = "Travel Guide", Description = "Comprehensive guide to popular travel destinations" });
-        products.Add(new Product { Id = 31, Name = "Art Book", Description = "Collection of artwork from famous artists throughout history" });
-        products.Add(new Product { Id = 32, Name = "Children's Book", Description = "Illustrated storybook for young readers" });
-        products.Add(new Product { Id = 33, Name = "History Book", Description = "Detailed account of important historical events" });
+        // Books (Tag 3) - Programming books in different languages
+        products.Add(new Product { Id = 24, Name = "Programmeren in Python", Description = "Leer Python programmeren met praktische voorbeelden en oefeningen" });
+        products.Add(new Product { Id = 25, Name = "JavaScript para Principiantes", Description = "Guía completa de JavaScript para desarrollo web moderno" });
+        products.Add(new Product { Id = 26, Name = "Programmation Java", Description = "Maîtrisez la programmation Java avec des exemples concrets" });
+        products.Add(new Product { Id = 27, Name = "C# Programming Guide", Description = "Comprehensive guide to C# programming with practical examples" });
+        products.Add(new Product { Id = 28, Name = "React Development", Description = "Ontwikkel moderne web applicaties met React en Redux" });
+        products.Add(new Product { Id = 29, Name = "Desarrollo con Angular", Description = "Construye aplicaciones web robustas con Angular y TypeScript" });
+        products.Add(new Product { Id = 30, Name = "Développement Web avec Vue.js", Description = "Créez des applications web interactives avec Vue.js et Vuex" });
+        products.Add(new Product { Id = 31, Name = "Database Design", Description = "Leer database ontwerp en SQL optimalisatie technieken" });
+        products.Add(new Product { Id = 32, Name = "Algoritmos y Estructuras de Datos", Description = "Fundamentos de algoritmos y estructuras de datos en programación" });
+        products.Add(new Product { Id = 33, Name = "Machine Learning en Python", Description = "Introduction au machine learning avec Python et scikit-learn" });
 
-        // Home & Kitchen (Tag 4)
-        products.Add(new Product { Id = 34, Name = "Coffee Maker", Description = "Programmable coffee maker with thermal carafe" });
-        products.Add(new Product { Id = 35, Name = "Blender", Description = "High-powered blender for smoothies and food processing" });
-        products.Add(new Product { Id = 36, Name = "Toaster", Description = "4-slice toaster with multiple browning settings" });
-        products.Add(new Product { Id = 37, Name = "Microwave Oven", Description = "Countertop microwave with multiple cooking functions" });
-        products.Add(new Product { Id = 38, Name = "Cutlery Set", Description = "24-piece stainless steel cutlery set" });
-        products.Add(new Product { Id = 39, Name = "Cooking Pot Set", Description = "Non-stick cooking pot set with glass lids" });
-        products.Add(new Product { Id = 40, Name = "Throw Pillow", Description = "Decorative throw pillows for couch and bed" });
-        products.Add(new Product { Id = 41, Name = "Bedding Set", Description = "Soft cotton bedding set with duvet cover and pillowcases" });
-        products.Add(new Product { Id = 42, Name = "Bathroom Towel Set", Description = "Set of 6 absorbent cotton bath towels" });
-        products.Add(new Product { Id = 43, Name = "Area Rug", Description = "Soft area rug to enhance your living space" });
+        // Home & Kitchen (Tag 4) - International products
+        products.Add(new Product { Id = 34, Name = "Cafetera", Description = "Cafetera programable con jarra térmica" });
+        products.Add(new Product { Id = 35, Name = "Mixeur", Description = "Mixeur haute puissance pour smoothies et transformation alimentaire" });
+        products.Add(new Product { Id = 36, Name = "Broodrooster", Description = "4-slice broodrooster met meerdere bruiningsinstellingen" });
+        products.Add(new Product { Id = 37, Name = "Horno Microondas", Description = "Microondas de encimera con múltiples funciones de cocción" });
+        products.Add(new Product { Id = 38, Name = "Service de Couverts", Description = "Service de 24 couverts en acier inoxydable" });
+        products.Add(new Product { Id = 39, Name = "Kookpot Set", Description = "Anti-aanbak kookpot set met glazen deksels" });
+        products.Add(new Product { Id = 40, Name = "Cojín Decorativo", Description = "Cojines decorativos para sofá y cama" });
+        products.Add(new Product { Id = 41, Name = "Parure de Lit", Description = "Parure de lit en coton doux avec housse de couette et taies d'oreiller" });
+        products.Add(new Product { Id = 42, Name = "Handdoeken Set", Description = "Set van 6 absorberende katoenen badhanddoeken" });
+        products.Add(new Product { Id = 43, Name = "Alfombra", Description = "Alfombra suave para mejorar tu espacio de vida" });
 
-        // Sports (Tag 5)
-        products.Add(new Product { Id = 44, Name = "Running Shoes", Description = "Lightweight running shoes with cushioned sole" });
-        products.Add(new Product { Id = 45, Name = "Yoga Mat", Description = "Non-slip yoga mat with carrying strap" });
-        products.Add(new Product { Id = 46, Name = "Dumbbells", Description = "Set of adjustable dumbbells for home workouts" });
-        products.Add(new Product { Id = 47, Name = "Tennis Racket", Description = "Professional tennis racket with carrying case" });
-        products.Add(new Product { Id = 48, Name = "Basketball", Description = "Official size and weight basketball" });
-        products.Add(new Product { Id = 49, Name = "Cycling Helmet", Description = "Lightweight cycling helmet with adjustable fit" });
-        products.Add(new Product { Id = 50, Name = "Fitness Tracker", Description = "Activity tracker with heart rate monitoring" });
-        products.Add(new Product { Id = 51, Name = "Golf Clubs", Description = "Complete set of golf clubs for beginners" });
-        products.Add(new Product { Id = 52, Name = "Snowboard", Description = "All-mountain snowboard for intermediate riders" });
-        products.Add(new Product { Id = 53, Name = "Swimming Goggles", Description = "Anti-fog swimming goggles with UV protection" });
+        // Sports (Tag 5) - International products
+        products.Add(new Product { Id = 44, Name = "Zapatillas de Running", Description = "Zapatillas ligeras para correr con suela acolchada" });
+        products.Add(new Product { Id = 45, Name = "Tapis de Yoga", Description = "Tapis de yoga antidérapant avec sangle de transport" });
+        products.Add(new Product { Id = 46, Name = "Halters", Description = "Set van verstelbare halters voor thuis workouts" });
+        products.Add(new Product { Id = 47, Name = "Raqueta de Tenis", Description = "Raqueta de tenis profesional con funda de transporte" });
+        products.Add(new Product { Id = 48, Name = "Ballon de Basketball", Description = "Ballon de basketball taille et poids officiels" });
+        products.Add(new Product { Id = 49, Name = "Fietshelm", Description = "Lichtgewicht fietshelm met verstelbare pasvorm" });
+        products.Add(new Product { Id = 50, Name = "Monitor de Actividad", Description = "Rastreador de actividad con monitoreo de frecuencia cardíaca" });
+        products.Add(new Product { Id = 51, Name = "Clubs de Golf", Description = "Set complet de clubs de golf pour débutants" });
+        products.Add(new Product { Id = 52, Name = "Snowboard", Description = "All-mountain snowboard voor gevorderde rijders" });
+        products.Add(new Product { Id = 53, Name = "Gafas de Natación", Description = "Gafas de natación anti-empañamiento con protección UV" });
 
-        // Automotive (Tag 6)
-        products.Add(new Product { Id = 54, Name = "Car Vacuum", Description = "Portable vacuum cleaner for car interiors" });
-        products.Add(new Product { Id = 55, Name = "Dashboard Camera", Description = "HD dashboard camera with night vision capability" });
-        products.Add(new Product { Id = 56, Name = "Car Phone Mount", Description = "Adjustable phone mount for car dashboard or windshield" });
-        products.Add(new Product { Id = 57, Name = "Jump Starter", Description = "Portable jump starter with built-in flashlight" });
-        products.Add(new Product { Id = 58, Name = "Tire Pressure Gauge", Description = "Digital tire pressure gauge with backlit display" });
-        products.Add(new Product { Id = 59, Name = "Car Wax", Description = "Premium car wax for long-lasting shine and protection" });
-        products.Add(new Product { Id = 60, Name = "Car Cover", Description = "Waterproof car cover for all weather protection" });
-        products.Add(new Product { Id = 61, Name = "Seat Covers", Description = "Universal fit seat covers with stain resistance" });
+        // Automotive (Tag 6) - International products
+        products.Add(new Product { Id = 54, Name = "Aspiradora para Coche", Description = "Aspiradora portátil para interiores de automóviles" });
+        products.Add(new Product { Id = 55, Name = "Caméra de Tableau de Bord", Description = "Caméra de tableau de bord HD avec capacité de vision nocturne" });
+        products.Add(new Product { Id = 56, Name = "Auto Telefoonhouder", Description = "Verstelbare telefoonhouder voor autodashboard of voorruit" });
+        products.Add(new Product { Id = 57, Name = "Arrancador Portátil", Description = "Arrancador portátil con linterna integrada" });
+        products.Add(new Product { Id = 58, Name = "Manomètre de Pneu", Description = "Manomètre de pression des pneus numérique avec écran rétroéclairé" });
+        products.Add(new Product { Id = 59, Name = "Autowas", Description = "Premium autowas voor langdurige glans en bescherming" });
+        products.Add(new Product { Id = 60, Name = "Funda para Coche", Description = "Funda impermeable para protección en todo tipo de clima" });
+        products.Add(new Product { Id = 61, Name = "Housses de Siège", Description = "Housses de siège universelles avec résistance aux taches" });
         products.Add(new Product { Id = 62, Name = "Floor Mats", Description = "All-weather floor mats with anti-slip backing" });
         products.Add(new Product { Id = 63, Name = "GPS Navigator", Description = "GPS navigation system with real-time traffic updates" });
 

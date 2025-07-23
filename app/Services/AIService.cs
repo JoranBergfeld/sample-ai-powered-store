@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Azure.AI.Vision.ImageAnalysis;
 using System.Collections.Generic;
@@ -42,74 +41,14 @@ public class AIService
         {
             _logger.LogInformation("Processing natural language query: {Query}", query);
             
-            // Define the prompt template to process user queries about products
-            string promptTemplate = @"
-            You are a helpful shopping assistant for SampleStore. 
-            Given the user's query, analyze what they're looking for in terms of:
-            - Product characteristics or features
-            - Categories or types of products
-            - Any specific requirements mentioned
-
-            User query: {{$query}}
-
-            Based on this query, extract the key search terms and categories that would help find relevant products.
-            Respond with a JSON object with these properties:
-            - searchTerms: array of strings representing important keywords from the query
-            - categories: array of possible category names that might match what the user is looking for
-            - importance: indicate which is more important for this query - the search terms or the categories - as a string either 'searchTerms' or 'categories'
-
-            Return only valid JSON without any markdown formatting or backticks:";
-
-            // Create the prompt with the user's query
+            // Use the kernel function to find products directly
             var arguments = new KernelArguments
             {
                 ["query"] = query
             };
 
-            // Execute the prompt using the kernel
-            var result = await _kernel.InvokePromptAsync(promptTemplate, arguments);
-            var resultText = result.GetValue<string>() ?? string.Empty;
-
-            _logger.LogInformation("AI Processing result: {Result}", resultText);
-
-            // Clean the result text - ensure it only contains valid JSON
-            resultText = CleanJsonResponse(resultText);
-
-            // Parse the JSON response
-            ProductSearchCriteria? searchCriteria;
-            try
-            {
-                searchCriteria = JsonSerializer.Deserialize<ProductSearchCriteria>(resultText, 
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                if (searchCriteria == null)
-                {
-                    _logger.LogWarning("Failed to parse AI response to search criteria");
-                    return new List<Product>();
-                }
-            }
-            catch (JsonException ex)
-            {
-                _logger.LogError(ex, "JSON parsing error with text: {Text}", resultText);
-                // Create a fallback search criteria with basic terms from the query
-                searchCriteria = new ProductSearchCriteria
-                {
-                    SearchTerms = query.Split(' ', StringSplitOptions.RemoveEmptyEntries),
-                    Categories = Array.Empty<string>(),
-                    Importance = "searchTerms"
-                };
-            }
-
-            // Use the search criteria to find products
-            var arguments2 = new KernelArguments
-            {
-                ["searchTerms"] = string.Join(" ", searchCriteria.SearchTerms),
-                ["categories"] = string.Join(" ", searchCriteria.Categories),
-                ["importance"] = searchCriteria.Importance
-            };
-
             var searchFunction = _kernel.Plugins["ProductSearch"]["FindProducts"];
-            var matchingProducts = await _kernel.InvokeAsync<List<Product>>(searchFunction, arguments2);
+            var matchingProducts = await _kernel.InvokeAsync<List<Product>>(searchFunction, arguments);
 
             return matchingProducts ?? new List<Product>();
         }
@@ -270,26 +209,16 @@ public class AIService
     {
         try
         {
-            // Convert the image analysis result to search terms and categories
-            var searchTerms = new List<string>();
-            searchTerms.AddRange(analysisResult.Objects);
-            searchTerms.AddRange(analysisResult.Characteristics);
+            // Create a simple query from the image analysis
+            var queryParts = new List<string>();
+            queryParts.AddRange(analysisResult.Objects);
+            queryParts.AddRange(analysisResult.Characteristics);
+            queryParts.AddRange(analysisResult.SuggestedCategories);
             
-            var searchTermsString = string.Join(" ", searchTerms.Distinct());
-            var categoriesString = string.Join(" ", analysisResult.SuggestedCategories.Distinct());
+            var query = string.Join(" ", queryParts.Distinct());
             
-            // Use the search function to find matching products
-            var arguments = new KernelArguments
-            {
-                ["searchTerms"] = searchTermsString,
-                ["categories"] = categoriesString,
-                ["importance"] = "searchTerms" // We prioritize the objects/characteristics detected
-            };
-
-            var searchFunction = _kernel.Plugins["ProductSearch"]["FindProducts"];
-            var matchingProducts = await _kernel.InvokeAsync<List<Product>>(searchFunction, arguments);
-
-            return matchingProducts ?? new List<Product>();
+            // Use the simplified search function
+            return await SearchProductsByNaturalLanguageAsync(query);
         }
         catch (Exception ex)
         {
@@ -329,14 +258,6 @@ public class AIService
     }
 }
 
-// Class to hold parsed search criteria from AI
-public class ProductSearchCriteria
-{
-    public string[] SearchTerms { get; set; } = Array.Empty<string>();
-    public string[] Categories { get; set; } = Array.Empty<string>();
-    public string Importance { get; set; } = "searchTerms";
-}
-
 // Class to hold image analysis results
 public class ImageAnalysisResult
 {
@@ -357,60 +278,27 @@ public class ProductSearchTool
     }
 
     [KernelFunction]
-    [Description("Find products based on search terms and/or categories")]
+    [Description("Find products based on user query")]
     public async Task<List<Product>> FindProducts(
-        [Description("Space-separated search terms to match against product descriptions")] string searchTerms,
-        [Description("Space-separated category names to filter products")] string categories,
-        [Description("Which is more important for this query - 'searchTerms' or 'categories'")] string importance)
+        [Description("User query to match against product names and descriptions")] string query)
     {
-        // Get all products first
+        // Get all products
         var allProducts = await _productService.GetProductsAsync();
         
-        // Split the search terms and categories
-        var terms = searchTerms.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var categoryNames = categories.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        // If query is empty, return empty list
+        if (string.IsNullOrWhiteSpace(query))
+            return new List<Product>();
         
-        // Filter by search terms
-        var termMatches = allProducts.Where(p => 
-            terms.Any(term => 
-                p.Name.Contains(term, StringComparison.OrdinalIgnoreCase) || 
-                p.Description.Contains(term, StringComparison.OrdinalIgnoreCase)
+        // Split query into words for matching
+        var queryWords = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        
+        // Find products that match any word in the query
+        var matchingProducts = allProducts.Where(p => 
+            queryWords.Any(word => 
+                p.Name.Contains(word, StringComparison.OrdinalIgnoreCase) || 
+                p.Description.Contains(word, StringComparison.OrdinalIgnoreCase)
             )).ToList();
-            
-        // Filter by categories
-        var categoryMatches = allProducts.Where(p =>
-            p.ProductTags.Any(pt => 
-                categoryNames.Any(cat => 
-                    pt.Tag.Name.Contains(cat, StringComparison.OrdinalIgnoreCase)
-                )
-            )).ToList();
-            
-        // Determine which results to prioritize based on the importance
-        if (importance.Equals("searchTerms", StringComparison.OrdinalIgnoreCase))
-        {
-            // If search terms are more important, return term matches first, then add any category matches not already included
-            var result = new List<Product>(termMatches);
-            foreach (var product in categoryMatches)
-            {
-                if (!result.Any(p => p.Id == product.Id))
-                {
-                    result.Add(product);
-                }
-            }
-            return result;
-        }
-        else
-        {
-            // If categories are more important, return category matches first, then add any term matches not already included
-            var result = new List<Product>(categoryMatches);
-            foreach (var product in termMatches)
-            {
-                if (!result.Any(p => p.Id == product.Id))
-                {
-                    result.Add(product);
-                }
-            }
-            return result;
-        }
+        
+        return matchingProducts;
     }
 }
