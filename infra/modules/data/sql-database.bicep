@@ -30,9 +30,6 @@ param databaseSkuTier string = 'Basic'
 @description('The name of the database SKU')
 param databaseSkuName string = 'Basic'
 
-@description('The service tier of the database')
-param databaseServiceTier string = 'Basic'
-
 resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {
   name: sqlServerName
   location: location

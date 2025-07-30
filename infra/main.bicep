@@ -145,7 +145,6 @@ module sqlDatabaseModule 'modules/data/sql-database.bicep' = {
     administratorPassword: sqlAdministratorPassword
     databaseSkuTier: 'Basic'
     databaseSkuName: 'Basic'
-    databaseServiceTier: 'Basic'
   }
 }
 
