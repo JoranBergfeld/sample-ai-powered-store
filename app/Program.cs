@@ -15,8 +15,18 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddMudServices();
 // Add DbContext
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("SampleStoreDb"));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrEmpty(connectionString))
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlServer(connectionString));
+}
+else
+{
+    Console.WriteLine("SQL Database connection string not found. Using in-memory database for development.");
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseInMemoryDatabase("SampleStoreDb"));
+}
 
 // Configure and register Semantic Kernel
 var kernelBuilder = builder.Services.AddKernel();
@@ -81,7 +91,35 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var dbContext = services.GetRequiredService<AppDbContext>();
-    dbContext.Database.EnsureCreated();
+    
+    try
+    {
+        // Use migrations if using SQL Server, otherwise EnsureCreated for in-memory
+        if (dbContext.Database.IsSqlServer())
+        {
+            dbContext.Database.Migrate();
+        }
+        else
+        {
+            dbContext.Database.EnsureCreated();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+        
+        // For development, if migration fails, try EnsureCreated as fallback
+        if (app.Environment.IsDevelopment())
+        {
+            logger.LogWarning("Attempting to use EnsureCreated as fallback in development mode.");
+            dbContext.Database.EnsureCreated();
+        }
+        else
+        {
+            throw;
+        }
+    }
 }
 
 // Configure the HTTP request pipeline.
