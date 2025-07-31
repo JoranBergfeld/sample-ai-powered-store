@@ -200,7 +200,7 @@ module acaBackend 'modules/host/container-app-upsert.bicep' = {
       OpenAI__ApiKey: openAiModule.outputs.key1
       AzureVision__Endpoint: visionModule.outputs.endpoint
       AzureVision__ApiKey: visionModule.outputs.key1
-      ConnectionStrings__DefaultConnection: 'Server=tcp:${sqlDatabaseModule.outputs.sqlServerFqdn},1433;Initial Catalog=${sqlDatabaseModule.outputs.sqlDatabaseName};Persist Security Info=False;User ID=${sqlAdministratorLogin};Password=${sqlAdministratorPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+      ConnectionStrings__DatabaseConnection: 'Server=tcp:${sqlDatabaseModule.outputs.sqlServerFqdn},1433;Initial Catalog=${sqlDatabaseModule.outputs.sqlDatabaseName};Persist Security Info=False;User ID=${sqlAdministratorLogin};Password=${sqlAdministratorPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
     }
   }
 }
