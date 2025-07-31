@@ -77,6 +77,9 @@ param azureContainerAppsWorkloadProfile string
 @description('Used by azd for containerapps deployment')
 param webAppExists bool
 
+@description('The name of the Azure Storage Account')
+param storageAccountName string = ''
+
 resource rg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${environmentName}'
   location: location
@@ -98,7 +101,6 @@ module logAnalytics 'br/public:avm/res/operational-insights/workspace:0.7.0' = {
   }
 }
 
-
 // Deploy OpenAI module
 module openAiModule 'modules/ai/openai.bicep' = {
   name: 'openAiDeploy'
@@ -110,6 +112,8 @@ module openAiModule 'modules/ai/openai.bicep' = {
     skuName: openAiSkuName
     deploymentModel: openAiDeploymentModel
     deploymentCapacity: openAiDeploymentCapacity
+    embeddingModel: 'text-embedding-3-small'
+    embeddingDeploymentName: 'embedding'
   }
 }
 
@@ -122,6 +126,29 @@ module visionModule 'modules/ai/vision.bicep' = {
     tags: tags
     skuName: visionSkuName
     // Location is hardcoded in the module to westeurope
+  }
+}
+
+module storageAccountModule 'modules/storage/storage-account.bicep' = {
+  name: 'storageAccountDeploy'
+  scope: rg
+  params: {
+    name: storageAccountName
+    location: location
+    tags: tags
+  }
+}
+
+module aiSearch 'modules/ai-search/ai-search.bicep' = {
+  name: 'aiSearchWithStorageDeploy'
+  scope: rg
+  params: {
+    storageAccountName: storageAccountModule.outputs.name
+    storageAccountKey: storageAccountModule.outputs.primaryKey
+    location: location
+    openAiResourceUri: openAiModule.outputs.endpoint
+    openAiDeploymentId: openAiModule.outputs.embeddingModelName
+    openAiApiKey: openAiModule.outputs.key1
   }
 }
 
@@ -151,12 +178,6 @@ module containerApps 'modules/host/container-apps.bicep' = {
 module acaBackend 'modules/host/container-app-upsert.bicep' = {
   name: 'aca-web'
   scope: rg
-  dependsOn: [
-    containerApps
-    acaIdentity
-    visionModule
-    openAiModule
-  ]
   params: {
     name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesContainerApps}${resourceToken}'
     location: location
@@ -184,5 +205,7 @@ module acaBackend 'modules/host/container-app-upsert.bicep' = {
 output AZURE_RESOURCE_GROUP string = rg.name
 output AZURE_LOCATION string = location
 output AZURE_OPENAI_ENDPOINT string = openAiModule.outputs.endpoint
+output AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME string = openAiModule.outputs.embeddingModelName
 output AZURE_VISION_ENDPOINT string = visionModule.outputs.endpoint
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerApps.outputs.registryLoginServer
+output AZURE_STORAGE_ACCOUNT_NAME string = storageAccountModule.outputs.name
