@@ -54,7 +54,7 @@ resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
   properties: {
     collation: 'SQL_Latin1_General_CP1_CI_AS'
     catalogCollation: 'SQL_Latin1_General_CP1_CI_AS'
-    maxSizeBytes: 1073741824 // 1 GB
+    maxSizeBytes: maxSizeBytes
   }
 }
 
