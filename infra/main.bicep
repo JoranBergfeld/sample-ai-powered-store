@@ -68,6 +68,13 @@ var visionNameToUse = visionName != '' ? visionName : '${abbrs.cognitiveServices
 @description('The SKU name for Azure Computer Vision')
 param visionSkuName string = 'S1'
 
+@description('The name of the Azure AI Search service')
+param searchServiceName string = ''
+var searchServiceNameToUse = searchServiceName != '' ? searchServiceName : '${abbrs.searchSearchServices}${baseSuffixShortend}'
+
+@description('The SKU name for Azure AI Search')
+param searchServiceSku string = 'basic'
+
 @description('The name of the Azure Container Registry')
 param containerRegistryName string = ''
 
@@ -77,8 +84,12 @@ param azureContainerAppsWorkloadProfile string
 @description('Used by azd for containerapps deployment')
 param webAppExists bool
 
-@description('The name of the Azure Storage Account')
-param storageAccountName string = ''
+@description('The administrator login name for the SQL server')
+param sqlAdministratorLogin string = 'dbadmin'
+
+@secure()
+@description('The administrator password for the SQL server')
+param sqlAdministratorPassword string
 
 resource rg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${environmentName}'
@@ -129,26 +140,35 @@ module visionModule 'modules/ai/vision.bicep' = {
   }
 }
 
-module storageAccountModule 'modules/storage/storage-account.bicep' = {
-  name: 'storageAccountDeploy'
+// Deploy SQL Database module
+module sqlDatabaseModule 'modules/data/sql-database.bicep' = {
+  name: 'sqlDatabaseDeploy'
   scope: rg
   params: {
-    name: storageAccountName
+    sqlServerName: '${abbrs.sqlServers}${baseSuffixShortend}'
+    sqlDatabaseName: 'samplestore'
     location: location
     tags: tags
+    administratorLogin: sqlAdministratorLogin
+    administratorPassword: sqlAdministratorPassword
+    databaseSkuTier: 'Basic'
+    databaseSkuName: 'Basic'
   }
 }
 
-module aiSearch 'modules/ai-search/ai-search.bicep' = {
-  name: 'aiSearchWithStorageDeploy'
+// Deploy Azure AI Search module
+module searchModule 'modules/ai/search.bicep' = {
+  name: 'searchDeploy'
   scope: rg
+  dependsOn: [
+    sqlDatabaseModule
+  ]
   params: {
-    storageAccountName: storageAccountModule.outputs.name
-    storageAccountKey: storageAccountModule.outputs.primaryKey
+    searchServiceName: searchServiceNameToUse
     location: location
-    openAiResourceUri: openAiModule.outputs.endpoint
-    openAiDeploymentId: openAiModule.outputs.embeddingModelName
-    openAiApiKey: openAiModule.outputs.key1
+    tags: tags
+    searchServiceSku: searchServiceSku
+    sqlConnectionString: 'Server=tcp:${sqlDatabaseModule.outputs.sqlServerFqdn},1433;Initial Catalog=${sqlDatabaseModule.outputs.sqlDatabaseName};Persist Security Info=False;User ID=${sqlAdministratorLogin};Password=${sqlAdministratorPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
   }
 }
 
@@ -178,6 +198,14 @@ module containerApps 'modules/host/container-apps.bicep' = {
 module acaBackend 'modules/host/container-app-upsert.bicep' = {
   name: 'aca-web'
   scope: rg
+  dependsOn: [
+    containerApps
+    acaIdentity
+    visionModule
+    openAiModule
+    sqlDatabaseModule
+    searchModule
+  ]
   params: {
     name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesContainerApps}${resourceToken}'
     location: location
@@ -197,6 +225,12 @@ module acaBackend 'modules/host/container-app-upsert.bicep' = {
       OpenAI__ApiKey: openAiModule.outputs.key1
       AzureVision__Endpoint: visionModule.outputs.endpoint
       AzureVision__ApiKey: visionModule.outputs.key1
+      AzureSearch__ServiceName: searchModule.outputs.searchServiceName
+      AzureSearch__Endpoint: searchModule.outputs.searchServiceEndpoint
+      AzureSearch__AdminKey: searchModule.outputs.searchServiceAdminKey
+      AzureSearch__QueryKey: searchModule.outputs.searchServiceQueryKey
+      AzureSearch__IndexName: 'products-index'
+      ConnectionStrings__DatabaseConnection: 'Server=tcp:${sqlDatabaseModule.outputs.sqlServerFqdn},1433;Initial Catalog=${sqlDatabaseModule.outputs.sqlDatabaseName};Persist Security Info=False;User ID=${sqlAdministratorLogin};Password=${sqlAdministratorPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
     }
   }
 }
@@ -207,5 +241,8 @@ output AZURE_LOCATION string = location
 output AZURE_OPENAI_ENDPOINT string = openAiModule.outputs.endpoint
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME string = openAiModule.outputs.embeddingModelName
 output AZURE_VISION_ENDPOINT string = visionModule.outputs.endpoint
+output AZURE_SEARCH_ENDPOINT string = searchModule.outputs.searchServiceEndpoint
+output AZURE_SEARCH_SERVICE_NAME string = searchModule.outputs.searchServiceName
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerApps.outputs.registryLoginServer
-output AZURE_STORAGE_ACCOUNT_NAME string = storageAccountModule.outputs.name
+output AZURE_SQL_SERVER_NAME string = sqlDatabaseModule.outputs.sqlServerName
+output AZURE_SQL_DATABASE_NAME string = sqlDatabaseModule.outputs.sqlDatabaseName

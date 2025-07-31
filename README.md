@@ -54,8 +54,9 @@ The AI search uses Semantic Kernel with Azure OpenAI to:
 - **Semantic Kernel**: Used for building AI applications with Large Language Models (LLMs)
 - **Blazor Server**: For creating interactive web applications using C# instead of JavaScript
 - **MudBlazor**: Component library for building rich UI experiences
-- **Entity Framework Core**: For data access and in-memory database
+- **Entity Framework Core**: For data access and SQL Server database
 - **Azure OpenAI**: Provides the AI capabilities through LLM integration
+- **Azure AI Search**: Provides full-text search and indexing capabilities with automatic data synchronization from SQL database
 
 ## Getting Started
 
@@ -85,11 +86,18 @@ This application requires an Azure OpenAI service to power the AI agent. You'll 
   "AzureVision": {
     "Endpoint": "https://your-resource.cognitiveservices.azure.com/",
     "ApiKey": "your-api-key"
+  },
+  "AzureSearch": {
+    "ServiceName": "your-search-service-name",
+    "Endpoint": "https://your-search-service.search.windows.net",
+    "AdminKey": "your-admin-key",
+    "QueryKey": "your-query-key",
+    "IndexName": "products-index"
   }
 }
 ```
 
-> **Note**: Without valid Azure OpenAI or Azure Vision credentials, the application will fall back to mock responses for development purposes only. 
+> **Note**: Without valid Azure OpenAI, Azure Vision, or Azure AI Search credentials, the application will fall back to mock responses for development purposes only. 
 
 ### Running Locally
 
@@ -139,7 +147,8 @@ Once the application is running:
   - **main.bicep**: Main deployment module
   - **modules/**: Individual infrastructure components
     - **host/**: Container App deployment
-    - **ai/**: Azure AI services deployment
+    - **ai/**: Azure AI services deployment (OpenAI, Computer Vision, Search)
+    - **data/**: Database infrastructure
     - **security/**: Security concerns such as managed identity 
 
 ## Deployment to Azure
