@@ -77,6 +77,13 @@ param azureContainerAppsWorkloadProfile string
 @description('Used by azd for containerapps deployment')
 param webAppExists bool
 
+@description('The administrator login name for the SQL server')
+param sqlAdministratorLogin string = 'dbadmin'
+
+@secure()
+@description('The administrator password for the SQL server')
+param sqlAdministratorPassword string
+
 resource rg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${environmentName}'
   location: location
@@ -125,6 +132,22 @@ module visionModule 'modules/ai/vision.bicep' = {
   }
 }
 
+// Deploy SQL Database module
+module sqlDatabaseModule 'modules/data/sql-database.bicep' = {
+  name: 'sqlDatabaseDeploy'
+  scope: rg
+  params: {
+    sqlServerName: '${abbrs.sqlServers}${baseSuffixShortend}'
+    sqlDatabaseName: 'samplestore'
+    location: location
+    tags: tags
+    administratorLogin: sqlAdministratorLogin
+    administratorPassword: sqlAdministratorPassword
+    databaseSkuTier: 'Basic'
+    databaseSkuName: 'Basic'
+  }
+}
+
 module acaIdentity 'modules/security/aca-identity.bicep' = {
   name: 'aca-identity'
   scope: rg
@@ -156,6 +179,7 @@ module acaBackend 'modules/host/container-app-upsert.bicep' = {
     acaIdentity
     visionModule
     openAiModule
+    sqlDatabaseModule
   ]
   params: {
     name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesContainerApps}${resourceToken}'
@@ -176,6 +200,7 @@ module acaBackend 'modules/host/container-app-upsert.bicep' = {
       OpenAI__ApiKey: openAiModule.outputs.key1
       AzureVision__Endpoint: visionModule.outputs.endpoint
       AzureVision__ApiKey: visionModule.outputs.key1
+      ConnectionStrings__DatabaseConnection: 'Server=tcp:${sqlDatabaseModule.outputs.sqlServerFqdn},1433;Initial Catalog=${sqlDatabaseModule.outputs.sqlDatabaseName};Persist Security Info=False;User ID=${sqlAdministratorLogin};Password=${sqlAdministratorPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
     }
   }
 }
@@ -186,3 +211,5 @@ output AZURE_LOCATION string = location
 output AZURE_OPENAI_ENDPOINT string = openAiModule.outputs.endpoint
 output AZURE_VISION_ENDPOINT string = visionModule.outputs.endpoint
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerApps.outputs.registryLoginServer
+output AZURE_SQL_SERVER_NAME string = sqlDatabaseModule.outputs.sqlServerName
+output AZURE_SQL_DATABASE_NAME string = sqlDatabaseModule.outputs.sqlDatabaseName
