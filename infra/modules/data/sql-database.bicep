@@ -30,6 +30,9 @@ param databaseSkuTier string = 'Basic'
 @description('The name of the database SKU')
 param databaseSkuName string = 'Basic'
 
+@description('The maximum size of the database in bytes')
+param maxSizeBytes int = 2147483648 // 2GB default for Basic tier
+
 resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {
   name: sqlServerName
   location: location
