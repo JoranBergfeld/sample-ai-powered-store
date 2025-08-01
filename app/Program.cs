@@ -1,12 +1,13 @@
-using app.Components;
 using app.Data;
 using app.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
-using MudBlazor.Services;
 using Azure;
 using Azure.AI.Vision.ImageAnalysis;
+using Azure.Search.Documents.Indexes;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.AzureAISearch;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,7 +64,7 @@ var visionApiKey = visionConfig["ApiKey"];
 if (!string.IsNullOrEmpty(visionEndpoint) && !string.IsNullOrEmpty(visionApiKey))
 {
     // Register Azure Vision client factory
-    builder.Services.AddSingleton(sp => 
+    builder.Services.AddSingleton(sp =>
     {
         return new ImageAnalysisClientFactory(visionEndpoint, visionApiKey);
     });
@@ -80,9 +81,37 @@ else
     });
 }
 
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+builder.Services.AddAzureOpenAIEmbeddingGenerator(
+    "text-embedding-3-small",
+    endpoint,
+    apiKey
+    );
+#pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+// Azure AI Search
+var aiSearchConfig = builder.Configuration.GetSection("AzureAISearch");
+var aiSearchEndpoint = aiSearchConfig["Endpoint"];
+var aiSearchApiKey = aiSearchConfig["ApiKey"];
+var aiSearchIndexName = aiSearchConfig["IndexName"] ?? "products";
+
+var searchIndexClient = new SearchIndexClient(
+    new Uri(aiSearchEndpoint),
+    new AzureKeyCredential(aiSearchApiKey)
+);
+builder.Services.AddSingleton(searchIndexClient);
+
+builder.Services.AddSingleton(sp =>
+{
+    return new AzureAISearchCollection<string, ProductVector>(
+        searchIndexClient,
+        aiSearchIndexName);
+});
+
 // Register services
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<AIService>();
+builder.Services.AddScoped<VectorService>();
 
 var app = builder.Build();
 
@@ -91,7 +120,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var dbContext = services.GetRequiredService<AppDbContext>();
-    
+
     try
     {
         // Use migrations if using SQL Server, otherwise EnsureCreated for in-memory
@@ -108,7 +137,7 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while migrating or seeding the database.");
-        
+
         // For development, if migration fails, try EnsureCreated as fallback
         if (app.Environment.IsDevelopment())
         {

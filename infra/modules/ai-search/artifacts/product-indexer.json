@@ -1,0 +1,46 @@
+{
+  "@odata.context": "https://smurfdemo.search.windows.net/$metadata#indexers/$entity",
+  "@odata.etag": "\"0x8DDD0ED71400DD8\"",
+  "name": "product-indexer",
+  "description": null,
+  "dataSourceName": "azureblob-1753943632429-datasource", // Ensure this matches your data source name
+  "skillsetName": "csv-embedding-skillset", // Ensure this matches your skillset name
+  "targetIndexName": "product-index", // Ensure this matches your target index name
+  "disabled": null,
+  "schedule": null,
+  "parameters": {
+    "batchSize": null,
+    "maxFailedItems": null,
+    "maxFailedItemsPerBatch": null,
+    "configuration": {
+      "parsingMode": "delimitedText",
+      "firstLineContainsHeaders": true
+    }
+  },
+  "fieldMappings": [
+    {
+      "sourceFieldName": "Id",
+      "targetFieldName": "Id",
+      "mappingFunction": null
+    },
+    {
+      "sourceFieldName": "Name",
+      "targetFieldName": "Name",
+      "mappingFunction": null
+    },
+    {
+      "sourceFieldName": "Description",
+      "targetFieldName": "Description",
+      "mappingFunction": null
+    }
+  ],
+  "outputFieldMappings": [
+    {
+      "sourceFieldName": "/document/descriptionVector",
+      "targetFieldName": "descriptionVector",
+      "mappingFunction": null
+    }
+  ],
+  "cache": null,
+  "encryptionKey": null
+}

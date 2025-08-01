@@ -1,0 +1,109 @@
+{
+  "@odata.etag": "\"0x8DDD0ED563AC8BE\"",
+  "name": "product-index",
+  "fields": [
+    {
+      "name": "Id",
+      "type": "Edm.String",
+      "searchable": true,
+      "filterable": true,
+      "retrievable": true,
+      "stored": true,
+      "sortable": true,
+      "facetable": true,
+      "key": true,
+      "synonymMaps": []
+    },
+    {
+      "name": "Name",
+      "type": "Edm.String",
+      "searchable": true,
+      "filterable": true,
+      "retrievable": true,
+      "stored": true,
+      "sortable": true,
+      "facetable": true,
+      "key": false,
+      "synonymMaps": []
+    },
+    {
+      "name": "Description",
+      "type": "Edm.String",
+      "searchable": true,
+      "filterable": true,
+      "retrievable": true,
+      "stored": true,
+      "sortable": true,
+      "facetable": true,
+      "key": false,
+      "synonymMaps": []
+    },
+    {
+      "name": "descriptionVector",
+      "type": "Collection(Edm.Single)",
+      "searchable": true,
+      "filterable": false,
+      "retrievable": true,
+      "stored": true,
+      "sortable": false,
+      "facetable": false,
+      "key": false,
+      "dimensions": 1536,
+      "vectorSearchProfile": "my-product-vector-profile",
+      "synonymMaps": []
+    }
+  ],
+  "scoringProfiles": [],
+  "suggesters": [
+    {
+      "name": "sg",
+      "searchMode": "analyzingInfixMatching",
+      "sourceFields": [
+        "Name",
+        "Description"
+      ]
+    }
+  ],
+  "analyzers": [],
+  "normalizers": [],
+  "tokenizers": [],
+  "tokenFilters": [],
+  "charFilters": [],
+  "similarity": {
+    "@odata.type": "#Microsoft.Azure.Search.BM25Similarity"
+  },
+  "vectorSearch": {
+    "algorithms": [
+      {
+        "name": "hnsw-config",
+        "kind": "hnsw",
+        "hnswParameters": {
+          "metric": "cosine",
+          "m": 4,
+          "efConstruction": 400,
+          "efSearch": 500
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "name": "my-product-vector-profile",
+        "algorithm": "hnsw-config",
+        "vectorizer": "azureOpenAi-text-vectorizer"
+      }
+    ],
+    "vectorizers": [
+      {
+        "name": "azureOpenAi-text-vectorizer",
+        "kind": "azureOpenAI",
+        "azureOpenAIParameters": {
+          "resourceUri": "https://xxx.openai.azure.com", // Replace with your actual Azure OpenAI resource URI 
+          "deploymentId": "text-embedding-3-small",
+          "apiKey": "<redacted>", // Replace with your actual API key
+          "modelName": "text-embedding-3-small" // Ensure this matches your deployment
+        }
+      }
+    ],
+    "compressions": []
+  }
+}

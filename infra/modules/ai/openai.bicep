@@ -19,6 +19,15 @@ param deploymentCapacity int = 1
 @description('Deployment name for the model')
 param deploymentName string = 'chat'
 
+@description('The embedding model for Azure OpenAI')
+param embeddingModel string = 'text-embedding-3-small'
+
+@description('The embedding deployment capacity for Azure OpenAI')
+param embeddingDeploymentCapacity int = 1
+
+@description('Deployment name for the embedding model')
+param embeddingDeploymentName string = 'embedding'
+
 resource openAi 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   name: name
   location: location
@@ -49,9 +58,30 @@ resource openAiDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025
   }
 }
 
+resource openAiEmbeddingDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
+  parent: openAi
+  name: embeddingDeploymentName
+  tags: tags
+  sku: {
+    name: 'Standard'
+    capacity: embeddingDeploymentCapacity
+  }
+  properties: {
+    model: {
+      format: 'OpenAI'
+      name: embeddingModel
+    }
+  }
+  dependsOn: [
+    openAiDeployment
+  ]
+}
+
 // Outputs
 output id string = openAi.id
 output name string = openAi.name
 output endpoint string = openAi.properties.endpoint
 output modelName string = deploymentName
-output key1 string = listKeys(openAi.id, '2025-06-01').key1
+output embeddingModelName string = embeddingDeploymentName
+@secure()
+output key1 string = openAi.listKeys().key1

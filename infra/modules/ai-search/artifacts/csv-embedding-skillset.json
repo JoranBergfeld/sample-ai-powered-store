@@ -1,0 +1,31 @@
+{
+  "@odata.etag": "\"0x8DDD0ED61EADE98\"",
+  "name": "csv-embedding-skillset",
+  "description": "Skillset to vectorize a CSV column using Azure OpenAI Embedding Skill.",
+  "skills": [
+    {
+      "@odata.type": "#Microsoft.Skills.Text.AzureOpenAIEmbeddingSkill",
+      "name": "embed-csv-column",
+      "description": "Generates embeddings for a specified CSV column.",
+      "context": "/document",
+      "resourceUri": "https://xxx.openai.azure.com",  // Replace with your actual Azure OpenAI resource URI
+      "apiKey": "<redacted>", // Replace with your actual API key
+      "deploymentId": "text-embedding-3-small", // Ensure this matches your deployment
+      "dimensions": 1536, // Ensure this matches the embedding dimensions
+      "modelName": "text-embedding-3-small", // Ensure this matches your deployment
+      "inputs": [
+        {
+          "name": "text",
+          "source": "/document/Description",
+          "inputs": []
+        }
+      ],
+      "outputs": [
+        {
+          "name": "embedding",
+          "targetName": "descriptionVector"
+        }
+      ]
+    }
+  ]
+}
