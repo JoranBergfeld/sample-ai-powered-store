@@ -79,7 +79,7 @@ param searchServiceSku string = 'basic'
 param containerRegistryName string = ''
 
 @allowed(['Consumption', 'D4', 'D8', 'D16', 'D32', 'E4', 'E8', 'E16', 'E32', 'NC24-A100', 'NC48-A100', 'NC96-A100'])
-param azureContainerAppsWorkloadProfile string
+param azureContainerAppsWorkloadProfile string = 'Consumption'
 
 @description('Used by azd for containerapps deployment')
 param webAppExists bool
@@ -89,7 +89,7 @@ param sqlAdministratorLogin string = 'dbadmin'
 
 @secure()
 @description('The administrator password for the SQL server')
-param sqlAdministratorPassword string
+param sqlAdministratorPassword string = 'YeGFMEhM6eE4pr6O'
 
 resource rg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${environmentName}'
@@ -123,7 +123,7 @@ module openAiModule 'modules/ai/openai.bicep' = {
     skuName: openAiSkuName
     deploymentModel: openAiDeploymentModel
     deploymentCapacity: openAiDeploymentCapacity
-    embeddingModel: 'text-embedding-3-small'
+    embeddingModel: 'text-embedding-3-large'
     embeddingDeploymentName: 'embedding'
   }
 }

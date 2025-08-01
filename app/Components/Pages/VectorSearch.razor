@@ -1,0 +1,47 @@
+﻿@page "/vector-search"
+@using app.Models
+@using app.Services
+@inject ProductService ProductService
+@inject VectorService VectorService
+
+<h3>Vector Search</h3>
+
+<input @bind="searchQuery" placeholder="Enter search text..." class="form-control" />
+<button @onclick="SearchProducts" class="btn btn-primary mt-2">Search</button>
+
+@if (searchResults is not null)
+{
+    <h4 class="mt-4">Results</h4>
+    <ul>
+        @foreach (var product in searchResults)
+        {
+            <li>
+                <b>@product.Name</b><br />
+                @product.Description
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private string searchQuery = string.Empty;
+    private List<Product>? searchResults;
+
+    private async Task SearchProducts()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            searchResults = null;
+            return;
+        }
+
+        // Get embedding for the search query
+        var products = await VectorService.Query(searchQuery);
+        if (products != null)
+        {
+            searchResults = products.ToList();
+        }
+
+        StateHasChanged();
+    }
+}
