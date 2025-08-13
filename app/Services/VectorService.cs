@@ -26,8 +26,13 @@ namespace app.Services
             var queryEmbedding = await _embeddingGenerator.GenerateVectorAsync(query);
             var products = new List<Product>();
             double thresholdScore = 0.5;
+
+            // Search through the Azure AI Search
             await foreach (var vectorResult in _collection.SearchAsync(queryEmbedding, top))
             {
+                // Iterate through each result
+                // Check for search-score
+                // Map to a Product or other Type
                 await AddProductFromSearchResultAsync(products, thresholdScore, vectorResult);
             }
 
@@ -56,6 +61,11 @@ namespace app.Services
         public string Description { get; set; }
 
         [VectorStoreVector(1536)]
-        public ReadOnlyMemory<float> descriptionVector { get; set; }
+        public ReadOnlyMemory<float> textVector { get; set; }
+
+        // Kick
+        // Code
+        // Information
+        // KickAndInformation
     }
 }
